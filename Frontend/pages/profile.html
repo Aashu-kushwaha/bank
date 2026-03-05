@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Ledger Bank</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    body { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 240px; min-height: 100vh; background: var(--bg2);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      padding: 28px 0; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 32px; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #1a1400;
+    }
+    .logo-name {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .sidebar-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border-radius: var(--radius); color: var(--text2); font-size: 0.9rem; font-weight: 500;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active { background: var(--gold-dim); color: var(--gold); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 24px 12px 0; border-top: 1px solid var(--border); margin: 0 12px; }
+    .logout-btn {
+      width: 100%; padding: 11px 14px; background: transparent; border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text2); font-size: 0.875rem; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+    .main { margin-left: 240px; flex: 1; padding: 40px 48px; }
+
+    .page-header { margin-bottom: 40px; }
+    .page-header h2 { font-size: 1.75rem; font-weight: 600; }
+    .page-header p  { color: var(--text2); font-size: 0.9rem; margin-top: 4px; }
+
+    .profile-layout { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: start; }
+
+    /* Profile card */
+    .profile-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); padding: 32px; text-align: center;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .avatar-big {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 700; color: #1a1400;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 0 4px var(--bg2), 0 0 0 6px rgba(201,168,76,0.3);
+    }
+
+    .profile-name  { font-size: 1.3rem; font-weight: 600; margin-bottom: 4px; }
+    .profile-email { font-size: 0.85rem; color: var(--text3); margin-bottom: 20px; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-dim); border: 1px solid rgba(76,175,122,0.3);
+      color: var(--green); padding: 6px 14px; border-radius: 100px;
+      font-size: 0.78rem; font-weight: 600; margin-bottom: 28px;
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    .account-info { text-align: left; }
+    .info-row {
+      display: flex; flex-direction: column; gap: 4px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-size: 0.75rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .info-value { font-size: 0.875rem; font-family: 'DM Mono', monospace; color: var(--text); }
+
+    /* Details card */
+    .details-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); overflow: hidden;
+      animation: fadeUp 0.5s ease;
+    }
+
+    .card-section { padding: 28px 32px; border-bottom: 1px solid var(--border); }
+    .card-section:last-child { border-bottom: none; }
+    .section-heading {
+      font-size: 0.85rem; font-weight: 600; color: var(--text2);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;
+    }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .detail-item {}
+    .detail-label { font-size: 0.75rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .detail-value { font-size: 0.925rem; font-weight: 500; }
+    .detail-value.mono { font-family: 'DM Mono', monospace; font-size: 0.82rem; }
+
+    /* Danger zone */
+    .danger-section { padding: 28px 32px; }
+    .danger-title { font-size: 0.85rem; font-weight: 600; color: var(--red); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+    .danger-row { display: flex; align-items: center; justify-content: space-between; }
+    .danger-desc h4 { font-size: 0.9rem; font-weight: 500; margin-bottom: 4px; }
+    .danger-desc p  { font-size: 0.8rem; color: var(--text3); }
+    .btn-danger {
+      padding: 10px 20px; background: var(--red-dim);
+      border: 1px solid var(--red); border-radius: var(--radius);
+      color: var(--red); font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-danger:hover { background: var(--red); color: white; }
+
+    @media (max-width: 1024px) { .profile-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 24px 20px; } .detail-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">₹</div>
+      <div><div class="logo-name">Ledger Bank</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"    class="nav-item"><span class="nav-icon">◈</span> Dashboard</a>
+      <a href="send.html"         class="nav-item"><span class="nav-icon">↗</span> Send Money</a>
+      <a href="transactions.html" class="nav-item"><span class="nav-icon">≡</span> Transactions</a>
+      <a href="profile.html"      class="nav-item active"><span class="nav-icon">◎</span> Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn"><span>⏻</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>Profile</h2>
+      <p>Your account information</p>
+    </div>
+
+    <div class="profile-layout">
+      <!-- Left: profile summary -->
+      <div class="profile-card">
+        <div class="avatar-big" id="avatar-big">?</div>
+        <div class="profile-name"  id="profile-name">Loading...</div>
+        <div class="profile-email" id="profile-email">—</div>
+        <div class="status-badge"><div class="status-dot"></div> Active Account</div>
+
+        <div class="account-info">
+          <div class="info-row">
+            <div class="info-label">Account ID</div>
+            <div class="info-value" id="acc-id">—</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Currency</div>
+            <div class="info-value">INR — Indian Rupee</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Current Balance</div>
+            <div class="info-value" id="acc-balance">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: details -->
+      <div class="details-card">
+        <div class="card-section">
+          <div class="section-heading">Personal Information</div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Full Name</div>
+              <div class="detail-value" id="d-name">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Email Address</div>
+              <div class="detail-value" id="d-email">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">User ID</div>
+              <div class="detail-value mono" id="d-uid">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Account Status</div>
+              <div class="detail-value" style="color:var(--green)">● Active</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-section">
+          <div class="section-heading">Account Details</div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Account Number</div>
+              <div class="detail-value mono" id="d-accid">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Account Type</div>
+              <div class="detail-value">Savings Account</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Currency</div>
+              <div class="detail-value">₹ INR</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Bank Name</div>
+              <div class="detail-value">Ledger Bank</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="danger-section">
+          <div class="danger-title">Sign Out</div>
+          <div class="danger-row">
+            <div class="danger-desc">
+              <h4>Sign out of your account</h4>
+              <p>You will need to log in again to access your account.</p>
+            </div>
+            <button class="btn-danger" id="logout-btn2">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { authAPI, accountAPI } from '../services/api.js';
+    import { clearSession, isLoggedIn, getUser } from '../utils/auth.js';
+    import { formatCurrency, truncateId, getInitials } from '../utils/format.js';
+
+    if (!isLoggedIn()) window.location.href = 'login.html';
+
+    async function loadProfile() {
+      try {
+        const data = await authAPI.profile();
+        const user = data.user || data;
+
+        document.getElementById('avatar-big').textContent   = getInitials(user.name);
+        document.getElementById('profile-name').textContent = user.name;
+        document.getElementById('profile-email').textContent = user.email;
+        document.getElementById('d-name').textContent  = user.name;
+        document.getElementById('d-email').textContent = user.email;
+        document.getElementById('d-uid').textContent   = truncateId(user._id || user.id);
+
+        const { accounts } = await accountAPI.getAll();
+        if (accounts?.length) {
+          const acc = accounts[0];
+          document.getElementById('acc-id').textContent    = truncateId(acc._id);
+          document.getElementById('d-accid').textContent   = acc._id;
+          const { balance } = await accountAPI.getBalance(acc._id);
+          document.getElementById('acc-balance').textContent = formatCurrency(balance);
+        }
+      } catch (err) {
+        const user = getUser();
+        if (user) {
+          document.getElementById('avatar-big').textContent    = getInitials(user.name);
+          document.getElementById('profile-name').textContent  = user.name;
+          document.getElementById('profile-email').textContent = user.email;
+          document.getElementById('d-name').textContent  = user.name;
+          document.getElementById('d-email').textContent = user.email;
+        }
+      }
+    }
+
+    loadProfile();
+
+    async function logout() {
+      try { await authAPI.logout(); } catch {}
+      clearSession();
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('logout-btn2').addEventListener('click', logout);
+  </script>
+</body>
+</html>

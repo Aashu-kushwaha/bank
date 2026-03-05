@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Ledger Bank</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    body { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ─────────────────────────────── */
+    .sidebar {
+      width: 240px; min-height: 100vh;
+      background: var(--bg2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 28px 0; position: fixed; left: 0; top: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 24px 32px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #1a1400;
+    }
+    .logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-tag { font-size: 0.7rem; color: var(--text3); margin-left: 2px; }
+
+    .sidebar-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: var(--radius);
+      color: var(--text2); font-size: 0.9rem; font-weight: 500;
+      transition: all 0.2s; cursor: pointer;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active { background: var(--gold-dim); color: var(--gold); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-footer { padding: 24px 12px 0; border-top: 1px solid var(--border); margin: 0 12px; }
+    .logout-btn {
+      width: 100%; padding: 11px 14px;
+      background: transparent; border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text2);
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+    /* ── Main ─────────────────────────────────── */
+    .main {
+      margin-left: 240px; flex: 1;
+      padding: 40px 48px; min-height: 100vh;
+    }
+
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .page-header h2 { font-size: 1.75rem; font-weight: 600; }
+    .page-header p  { color: var(--text2); font-size: 0.9rem; margin-top: 4px; }
+
+    .user-chip {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg2); border: 1px solid var(--border);
+      padding: 8px 16px 8px 8px; border-radius: 100px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #1a1400;
+    }
+    .user-name { font-size: 0.875rem; font-weight: 500; }
+
+    /* ── Balance Card ─────────────────────────── */
+    .balance-card {
+      background: linear-gradient(135deg, #1a1600 0%, #2a2000 50%, #1a1600 100%);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: var(--radius2); padding: 40px;
+      position: relative; overflow: hidden;
+      margin-bottom: 32px;
+      animation: fadeUp 0.5s ease;
+    }
+    .balance-card::before {
+      content: ''; position: absolute;
+      top: -60px; right: -60px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .balance-card::after {
+      content: ''; position: absolute;
+      bottom: -40px; left: -40px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .balance-label {
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em;
+      color: rgba(201,168,76,0.6); margin-bottom: 12px;
+    }
+    .balance-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem; font-weight: 700;
+      color: var(--gold2); line-height: 1;
+      margin-bottom: 24px;
+    }
+    .balance-amount.loading { animation: pulse 1.5s infinite; }
+
+    .balance-meta {
+      display: flex; align-items: center; gap: 24px;
+      font-size: 0.8rem; color: rgba(201,168,76,0.5);
+    }
+    .balance-meta span { display: flex; align-items: center; gap: 6px; }
+
+    .account-id {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; color: rgba(201,168,76,0.4);
+    }
+
+    /* ── Quick Actions ────────────────────────── */
+    .section-title { font-size: 1rem; font-weight: 600; color: var(--text2); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .quick-actions {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-bottom: 40px;
+    }
+
+    .action-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); padding: 24px;
+      cursor: pointer; transition: all 0.2s;
+      text-decoration: none; color: inherit;
+      animation: fadeUp 0.5s ease both;
+    }
+    .action-card:nth-child(1) { animation-delay: 0.1s; }
+    .action-card:nth-child(2) { animation-delay: 0.15s; }
+    .action-card:nth-child(3) { animation-delay: 0.2s; }
+    .action-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+    .action-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 16px;
+    }
+    .action-icon.gold  { background: var(--gold-dim);  color: var(--gold);  }
+    .action-icon.green { background: var(--green-dim); color: var(--green); }
+    .action-icon.blue  { background: var(--blue-dim);  color: var(--blue);  }
+
+    .action-card h3 { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .action-card p  { font-size: 0.8rem; color: var(--text2); }
+
+    /* ── Recent Transactions ─────────────────── */
+    .transactions-list { display: flex; flex-direction: column; gap: 1px; }
+
+    .tx-item {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px;
+      transition: background 0.2s;
+      animation: fadeUp 0.4s ease both;
+    }
+    .tx-item:hover { background: var(--bg3); }
+
+    .tx-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .tx-icon.credit { background: var(--green-dim); color: var(--green); }
+    .tx-icon.debit  { background: var(--red-dim);   color: var(--red);   }
+
+    .tx-info { flex: 1; }
+    .tx-title { font-size: 0.9rem; font-weight: 500; }
+    .tx-sub   { font-size: 0.78rem; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+    .tx-amount { font-weight: 600; font-size: 0.95rem; }
+    .tx-amount.credit { color: var(--green); }
+    .tx-amount.debit  { color: var(--red);   }
+
+    .empty-state {
+      text-align: center; padding: 48px; color: var(--text3);
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; padding: 24px 20px; }
+      .quick-actions { grid-template-columns: 1fr; }
+      .balance-amount { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">₹</div>
+      <div>
+        <div class="logo-name">Ledger Bank</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active"><span class="nav-icon">◈</span> Dashboard</a>
+      <a href="send.html"      class="nav-item"><span class="nav-icon">↗</span> Send Money</a>
+      <a href="transactions.html" class="nav-item"><span class="nav-icon">≡</span> Transactions</a>
+      <a href="profile.html"   class="nav-item"><span class="nav-icon">◎</span> Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn"><span>⏻</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top-bar">
+      <div class="page-header">
+        <h2>Dashboard</h2>
+        <p id="greeting">Good morning</p>
+      </div>
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">?</div>
+        <span class="user-name" id="user-name">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Balance -->
+    <div class="balance-card">
+      <div class="balance-label">Available Balance</div>
+      <div class="balance-amount" id="balance-amount">Loading...</div>
+      <div class="balance-meta">
+        <span>Account ID: <span class="account-id" id="account-id">—</span></span>
+        <span>● ACTIVE</span>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="quick-actions">
+      <a href="send.html" class="action-card">
+        <div class="action-icon gold">↗</div>
+        <h3>Send Money</h3>
+        <p>Transfer funds instantly</p>
+      </a>
+      <a href="transactions.html" class="action-card">
+        <div class="action-icon blue">≡</div>
+        <h3>Transactions</h3>
+        <p>View your history</p>
+      </a>
+      <a href="profile.html" class="action-card">
+        <div class="action-icon green">◎</div>
+        <h3>Profile</h3>
+        <p>Manage your account</p>
+      </a>
+    </div>
+
+    <!-- Recent -->
+    <div class="section-title">Recent Activity</div>
+    <div id="tx-list" class="transactions-list">
+      <div class="empty-state">
+        <div class="icon">○</div>
+        <p>No recent transactions</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { authAPI, accountAPI, transactionAPI } from '../services/api.js';
+    import { getUser, clearSession, isLoggedIn } from '../utils/auth.js';
+    import { formatCurrency, truncateId, getInitials } from '../utils/format.js';
+
+    if (!isLoggedIn()) window.location.href = 'login.html';
+
+    const user = getUser();
+
+    // Greeting
+    const hour = new Date().getHours();
+    const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greeting').textContent = `${greet}, ${user?.name?.split(' ')[0] || ''}`;
+    document.getElementById('user-name').textContent = user?.name || '';
+    document.getElementById('user-avatar').textContent = getInitials(user?.name || '');
+
+    // Load balance
+    async function loadBalance() {
+      try {
+        const { accounts } = await accountAPI.getAll();
+        if (accounts && accounts.length > 0) {
+          const acc = accounts[0];
+          document.getElementById('account-id').textContent = truncateId(acc._id);
+          const { balance } = await accountAPI.getBalance(acc._id);
+          const el = document.getElementById('balance-amount');
+          el.textContent = formatCurrency(balance);
+          el.classList.remove('loading');
+        }
+      } catch (e) {
+        document.getElementById('balance-amount').textContent = '—';
+      }
+    }
+
+    loadBalance();
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await authAPI.logout(); } catch {}
+      clearSession();
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ledger Bank — Modern Banking</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    body { overflow-x: hidden; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 0 24px; position: relative;
+    }
+
+    .hero-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,168,76,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(85,136,232,0.05) 0%, transparent 50%);
+    }
+
+    .grid-overlay {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.035) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(10,10,15,0.8); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.08);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #1a1400;
+    }
+    .nav-logo-text {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-link {
+      padding: 9px 20px; border-radius: var(--radius);
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .nav-link.ghost { color: var(--text2); }
+    .nav-link.ghost:hover { color: var(--text); background: var(--bg3); }
+    .nav-link.primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #1a1400; font-weight: 700;
+    }
+    .nav-link.primary:hover { box-shadow: 0 4px 16px rgba(201,168,76,0.3); transform: translateY(-1px); }
+
+    /* Hero content */
+    .hero-content { position: relative; z-index: 1; max-width: 720px; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+      padding: 8px 18px; border-radius: 100px;
+      font-size: 0.8rem; color: var(--gold); font-weight: 500;
+      margin-bottom: 32px;
+      animation: fadeUp 0.5s ease;
+    }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 700; line-height: 1.1; margin-bottom: 24px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .hero-title .highlight {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem; color: var(--text2); line-height: 1.7;
+      max-width: 560px; margin: 0 auto 40px;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    .hero-actions {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+
+    .btn-hero-primary {
+      padding: 16px 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none; border-radius: var(--radius);
+      color: #1a1400; font-weight: 700; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-hero-primary:hover { box-shadow: 0 12px 32px rgba(201,168,76,0.35); transform: translateY(-2px); }
+
+    .btn-hero-ghost {
+      padding: 16px 36px;
+      background: transparent; border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-hero-ghost:hover { border-color: var(--border2); background: var(--bg2); }
+
+    /* Features */
+    .features {
+      padding: 120px 48px; max-width: 1200px; margin: 0 auto;
+      position: relative; z-index: 1;
+    }
+
+    .section-label {
+      text-align: center; font-size: 0.78rem; text-transform: uppercase;
+      letter-spacing: 0.15em; color: var(--gold); font-weight: 600; margin-bottom: 16px;
+    }
+
+    .section-title-big {
+      text-align: center; font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 700; margin-bottom: 64px;
+    }
+
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+    .feature-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); padding: 32px;
+      transition: all 0.3s;
+    }
+    .feature-card:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.3); }
+
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 20px;
+    }
+
+    .feature-card h3 { font-family: 'DM Sans', sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; }
+    .feature-card p  { font-size: 0.875rem; color: var(--text2); line-height: 1.7; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 48px;
+      text-align: center; color: var(--text3); font-size: 0.85rem;
+      position: relative; z-index: 1;
+    }
+    footer span { color: var(--gold); }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .features { padding: 80px 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <nav>
+    <div class="nav-logo">
+      <div class="nav-logo-icon">₹</div>
+      <span class="nav-logo-text">Ledger Bank</span>
+    </div>
+    <div class="nav-links">
+      <a href="pages/login.html"    class="nav-link ghost">Sign In</a>
+      <a href="pages/register.html" class="nav-link primary">Open Account</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✦ Modern Banking Infrastructure</div>
+      <h1 class="hero-title">
+        Banking built for the<br>
+        <span class="highlight">digital age</span>
+      </h1>
+      <p class="hero-sub">
+        Send money instantly, track every transaction, and manage your finances
+        with a platform built on transparency and security.
+      </p>
+      <div class="hero-actions">
+        <a href="pages/register.html" class="btn-hero-primary">Open Free Account ↗</a>
+        <a href="pages/login.html"    class="btn-hero-ghost">Sign In</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="section-label">Why Ledger Bank</div>
+    <h2 class="section-title-big">Everything you need to<br>manage money</h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--gold-dim);color:var(--gold)">₹</div>
+        <h3>Instant Transfers</h3>
+        <p>Send money to any Ledger account instantly with zero fees and real-time balance updates.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--green-dim);color:var(--green)">◈</div>
+        <h3>Ledger Accounting</h3>
+        <p>Every transaction is recorded with double-entry bookkeeping ensuring accuracy and auditability.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--blue-dim);color:var(--blue)">⊕</div>
+        <h3>Email Notifications</h3>
+        <p>Get notified for every transaction — sent, received, and account activity in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--red-dim);color:var(--red)">⊘</div>
+        <h3>Fraud Protection</h3>
+        <p>Idempotency keys and JWT blacklisting ensure your account stays protected at all times.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--gold-dim);color:var(--gold)">≡</div>
+        <h3>Transaction History</h3>
+        <p>View complete history of all your transactions with filters and real-time balance tracking.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--green-dim);color:var(--green)">✦</div>
+        <h3>Secure by Default</h3>
+        <p>MongoDB sessions, atomic transactions, and encrypted tokens keep your money safe.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Built with care — <span>Ledger Bank</span> © 2025
+  </footer>
+
+  <script type="module">
+    import { isLoggedIn } from './utils/auth.js';
+    if (isLoggedIn()) window.location.href = 'pages/dashboard.html';
+  </script>
+</body>
+</html>

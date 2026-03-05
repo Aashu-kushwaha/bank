@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transactions — Ledger Bank</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    body { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 240px; min-height: 100vh; background: var(--bg2);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      padding: 28px 0; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 32px; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #1a1400;
+    }
+    .logo-name {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .sidebar-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border-radius: var(--radius); color: var(--text2); font-size: 0.9rem; font-weight: 500;
+      transition: all 0.2s; cursor: pointer; text-decoration: none;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active { background: var(--gold-dim); color: var(--gold); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 24px 12px 0; border-top: 1px solid var(--border); margin: 0 12px; }
+    .logout-btn {
+      width: 100%; padding: 11px 14px; background: transparent; border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text2); font-size: 0.875rem; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+    .main { margin-left: 240px; flex: 1; padding: 40px 48px; }
+
+    .page-header { margin-bottom: 32px; }
+    .page-header h2 { font-size: 1.75rem; font-weight: 600; }
+    .page-header p  { color: var(--text2); font-size: 0.9rem; margin-top: 4px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); padding: 24px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-label { font-size: 0.78rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red   { color: var(--red); }
+    .stat-value.gold  { color: var(--gold); }
+
+    /* Transactions table */
+    .table-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); overflow: hidden;
+      animation: fadeUp 0.5s ease;
+    }
+
+    .table-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+    }
+    .table-header h3 { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .filter-tabs { display: flex; gap: 4px; }
+    .filter-tab {
+      padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; background: transparent;
+      border: 1px solid transparent; color: var(--text2);
+    }
+    .filter-tab:hover { background: var(--bg3); color: var(--text); }
+    .filter-tab.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.3); color: var(--gold); }
+
+    .tx-row {
+      display: grid; grid-template-columns: 48px 1fr 1fr auto;
+      align-items: center; gap: 16px;
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      animation: fadeUp 0.4s ease both;
+    }
+    .tx-row:last-child { border-bottom: none; }
+    .tx-row:hover { background: var(--bg3); }
+
+    .tx-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .tx-icon.credit { background: var(--green-dim); color: var(--green); }
+    .tx-icon.debit  { background: var(--red-dim);   color: var(--red); }
+
+    .tx-info .title { font-size: 0.88rem; font-weight: 500; }
+    .tx-info .id    { font-size: 0.75rem; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+    .tx-date { font-size: 0.78rem; color: var(--text3); }
+
+    .tx-amount { font-weight: 600; font-size: 0.92rem; text-align: right; }
+    .tx-amount.credit { color: var(--green); }
+    .tx-amount.debit  { color: var(--red); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 0.72rem; font-weight: 600; margin-top: 4px;
+    }
+    .badge.completed { background: var(--green-dim); color: var(--green); }
+    .badge.pending   { background: var(--gold-dim);  color: var(--gold);  }
+    .badge.failed    { background: var(--red-dim);   color: var(--red);   }
+
+    .empty-state {
+      text-align: center; padding: 64px 24px; color: var(--text3);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.3; }
+    .empty-state p { font-size: 0.9rem; }
+
+    .loading-row { padding: 16px 24px; }
+    .skel { height: 20px; margin-bottom: 8px; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 20px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .tx-row { grid-template-columns: 40px 1fr auto; }
+      .tx-date { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">₹</div>
+      <div><div class="logo-name">Ledger Bank</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"    class="nav-item"><span class="nav-icon">◈</span> Dashboard</a>
+      <a href="send.html"         class="nav-item"><span class="nav-icon">↗</span> Send Money</a>
+      <a href="transactions.html" class="nav-item active"><span class="nav-icon">≡</span> Transactions</a>
+      <a href="profile.html"      class="nav-item"><span class="nav-icon">◎</span> Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn"><span>⏻</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>Transactions</h2>
+      <p>Your complete transaction history</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Received</div>
+        <div class="stat-value green" id="total-credit">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Sent</div>
+        <div class="stat-value red" id="total-debit">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Transactions</div>
+        <div class="stat-value gold" id="total-count">—</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <h3>All Transactions</h3>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterTx('all', this)">All</button>
+          <button class="filter-tab" onclick="filterTx('credit', this)">Received</button>
+          <button class="filter-tab" onclick="filterTx('debit', this)">Sent</button>
+        </div>
+      </div>
+      <div id="tx-list">
+        <div class="loading-row">
+          <div class="skeleton skel" style="width:60%"></div>
+          <div class="skeleton skel" style="width:40%"></div>
+          <div class="skeleton skel" style="width:50%"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { authAPI, accountAPI } from '../services/api.js';
+    import { clearSession, isLoggedIn } from '../utils/auth.js';
+    import { formatCurrency, truncateId, formatDate } from '../utils/format.js';
+
+    if (!isLoggedIn()) window.location.href = 'login.html';
+
+    let allTx = [];
+    let myAccountId = null;
+
+    async function loadTransactions() {
+      try {
+        const { accounts } = await accountAPI.getAll();
+        if (!accounts?.length) return;
+        myAccountId = accounts[0]._id;
+
+        // Fetch transactions via backend history endpoint
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:3000/api/transaction/history`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          allTx = data.transactions || [];
+        } else {
+          allTx = [];
+        }
+
+        renderStats();
+        renderTx(allTx);
+      } catch {
+        renderTx([]);
+      }
+    }
+
+    function renderStats() {
+      let credit = 0, debit = 0;
+      allTx.forEach(tx => {
+        if (tx.toAccount === myAccountId || tx.toAccount?._id === myAccountId) credit += tx.amount;
+        else debit += tx.amount;
+      });
+      document.getElementById('total-credit').textContent = formatCurrency(credit);
+      document.getElementById('total-debit').textContent  = formatCurrency(debit);
+      document.getElementById('total-count').textContent  = allTx.length;
+    }
+
+    function renderTx(list) {
+      const container = document.getElementById('tx-list');
+      if (!list.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">○</div>
+            <p>No transactions found</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = list.map((tx, i) => {
+        const isCredit = tx.toAccount === myAccountId || tx.toAccount?._id === myAccountId;
+        const type     = isCredit ? 'credit' : 'debit';
+        const sign     = isCredit ? '+' : '-';
+        const label    = isCredit ? '↙ Received' : '↗ Sent';
+        const otherId  = isCredit
+          ? (tx.fromAccount?._id || tx.fromAccount)
+          : (tx.toAccount?._id  || tx.toAccount);
+
+        return `
+          <div class="tx-row" style="animation-delay:${i * 0.04}s">
+            <div class="tx-icon ${type}">${isCredit ? '↙' : '↗'}</div>
+            <div class="tx-info">
+              <div class="title">${label}</div>
+              <div class="id">${truncateId(String(otherId))}</div>
+            </div>
+            <div class="tx-date">${tx.createdAt ? formatDate(tx.createdAt) : '—'}</div>
+            <div>
+              <div class="tx-amount ${type}">${sign}${formatCurrency(tx.amount)}</div>
+              <div><span class="badge ${(tx.status||'completed').toLowerCase()}">${tx.status || 'COMPLETED'}</span></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    window.filterTx = function(type, btn) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (type === 'all') return renderTx(allTx);
+      const filtered = allTx.filter(tx => {
+        const isCredit = tx.toAccount === myAccountId || tx.toAccount?._id === myAccountId;
+        return type === 'credit' ? isCredit : !isCredit;
+      });
+      renderTx(filtered);
+    };
+
+    loadTransactions();
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await authAPI.logout(); } catch {}
+      clearSession();
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>

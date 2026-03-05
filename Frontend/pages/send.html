@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Money — Ledger Bank</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    body { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 240px; min-height: 100vh;
+      background: var(--bg2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 28px 0;
+      position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 32px; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #1a1400;
+    }
+    .logo-name {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .sidebar-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border-radius: var(--radius); color: var(--text2); font-size: 0.9rem; font-weight: 500;
+      transition: all 0.2s; cursor: pointer; text-decoration: none;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active { background: var(--gold-dim); color: var(--gold); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 24px 12px 0; border-top: 1px solid var(--border); margin: 0 12px; }
+    .logout-btn {
+      width: 100%; padding: 11px 14px; background: transparent; border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text2); font-size: 0.875rem; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+    .main { margin-left: 240px; flex: 1; padding: 40px 48px; }
+
+    .page-header { margin-bottom: 40px; }
+    .page-header h2 { font-size: 1.75rem; font-weight: 600; }
+    .page-header p  { color: var(--text2); font-size: 0.9rem; margin-top: 4px; }
+
+    .send-layout { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
+
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius2); padding: 32px;
+      animation: fadeUp 0.5s ease;
+    }
+
+    .card-title {
+      font-size: 1rem; font-weight: 600; margin-bottom: 24px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+      color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    .form-group { margin-bottom: 24px; }
+    label {
+      display: block; font-size: 0.8rem; font-weight: 500; color: var(--text2);
+      margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    input {
+      width: 100%; padding: 14px 16px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text); font-size: 0.925rem;
+      transition: all 0.2s; outline: none;
+    }
+    input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+    input::placeholder { color: var(--text3); }
+
+    .amount-input-wrap { position: relative; }
+    .currency-prefix {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--gold); font-weight: 600; font-size: 1rem;
+    }
+    .amount-input-wrap input { padding-left: 36px; font-size: 1.4rem; font-weight: 600; }
+
+    .balance-hint {
+      font-size: 0.8rem; color: var(--text3); margin-top: 8px;
+    }
+    .balance-hint span { color: var(--gold); }
+
+    .btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none; border-radius: var(--radius);
+      color: #1a1400; font-weight: 700; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Summary card */
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row .label  { color: var(--text2); }
+    .summary-row .value  { font-weight: 500; font-family: 'DM Mono', monospace; font-size: 0.82rem; }
+    .summary-row .value.amount { font-size: 1.1rem; font-family: 'DM Sans', sans-serif; color: var(--gold); font-weight: 700; }
+
+    .success-state {
+      text-align: center; padding: 32px 0; display: none;
+    }
+    .success-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--green-dim); border: 2px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; margin: 0 auto 20px;
+      animation: fadeUp 0.4s ease;
+    }
+    .success-state h3 { font-size: 1.3rem; margin-bottom: 8px; }
+    .success-state p  { color: var(--text2); font-size: 0.875rem; margin-bottom: 24px; }
+    .btn-outline {
+      padding: 12px 24px; background: transparent;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-size: 0.875rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .error-msg {
+      background: var(--red-dim); border: 1px solid var(--red); color: var(--red);
+      padding: 12px 16px; border-radius: var(--radius); font-size: 0.85rem;
+      margin-bottom: 20px; display: none;
+    }
+
+    @media (max-width: 1024px) { .send-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 24px 20px; } }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">₹</div>
+      <div><div class="logo-name">Ledger Bank</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">◈</span> Dashboard</a>
+      <a href="send.html"      class="nav-item active"><span class="nav-icon">↗</span> Send Money</a>
+      <a href="transactions.html" class="nav-item"><span class="nav-icon">≡</span> Transactions</a>
+      <a href="profile.html"   class="nav-item"><span class="nav-icon">◎</span> Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn"><span>⏻</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>Send Money</h2>
+      <p>Transfer funds to any Ledger account instantly</p>
+    </div>
+
+    <div class="send-layout">
+      <!-- Form -->
+      <div class="card" id="form-card">
+        <div class="card-title">Transfer Details</div>
+        <div class="error-msg" id="error-msg"></div>
+
+        <div id="form-content">
+          <div class="form-group">
+            <label>Recipient Account ID</label>
+            <input type="text" id="to-account" placeholder="Enter account ID" oninput="updateSummary()">
+          </div>
+
+          <div class="form-group">
+            <label>Amount</label>
+            <div class="amount-input-wrap">
+              <span class="currency-prefix">₹</span>
+              <input type="number" id="amount" placeholder="0.00" min="1" oninput="updateSummary()">
+            </div>
+            <div class="balance-hint">Available: <span id="available-balance">Loading...</span></div>
+          </div>
+
+          <button class="btn" id="send-btn" onclick="handleSend()">
+            Send Money ↗
+          </button>
+        </div>
+
+        <div class="success-state" id="success-state">
+          <div class="success-icon">✓</div>
+          <h3>Transfer Successful!</h3>
+          <p>Your money has been sent successfully.</p>
+          <button class="btn-outline" onclick="resetForm()">Send Another</button>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card">
+        <div class="card-title">Transfer Summary</div>
+        <div class="summary-row">
+          <span class="label">From Account</span>
+          <span class="value" id="sum-from">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">To Account</span>
+          <span class="value" id="sum-to">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Amount</span>
+          <span class="value amount" id="sum-amount">₹ 0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Transfer Fee</span>
+          <span class="value" style="color:var(--green)">Free</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { authAPI, accountAPI, transactionAPI } from '../services/api.js';
+    import { clearSession, isLoggedIn } from '../utils/auth.js';
+    import { formatCurrency, truncateId } from '../utils/format.js';
+
+    if (!isLoggedIn()) window.location.href = 'login.html';
+
+    let myAccountId = null;
+    let myBalance   = 0;
+
+    async function init() {
+      try {
+        const { accounts } = await accountAPI.getAll();
+        if (accounts?.length) {
+          myAccountId = accounts[0]._id;
+          const { balance } = await accountAPI.getBalance(myAccountId);
+          myBalance = balance;
+          document.getElementById('available-balance').textContent = formatCurrency(balance);
+          document.getElementById('sum-from').textContent = truncateId(myAccountId);
+        }
+      } catch {}
+    }
+
+    init();
+
+    window.updateSummary = function() {
+      const to  = document.getElementById('to-account').value.trim();
+      const amt = parseFloat(document.getElementById('amount').value) || 0;
+      document.getElementById('sum-to').textContent     = to ? truncateId(to) : '—';
+      document.getElementById('sum-amount').textContent = formatCurrency(amt);
+    };
+
+    window.handleSend = async function() {
+      const toAccount = document.getElementById('to-account').value.trim();
+      const amount    = parseFloat(document.getElementById('amount').value);
+      const errEl     = document.getElementById('error-msg');
+      const btn       = document.getElementById('send-btn');
+
+      errEl.style.display = 'none';
+
+      if (!toAccount)           return showError('Please enter recipient account ID.');
+      if (!amount || amount<=0) return showError('Please enter a valid amount.');
+      if (amount > myBalance)   return showError(`Insufficient balance. Available: ${formatCurrency(myBalance)}`);
+      if (toAccount === myAccountId) return showError('Cannot send money to your own account.');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+      try {
+        await transactionAPI.send(myAccountId, toAccount, amount);
+        document.getElementById('form-content').style.display = 'none';
+        document.getElementById('success-state').style.display = 'block';
+        // Refresh balance
+        const { balance } = await accountAPI.getBalance(myAccountId);
+        myBalance = balance;
+        document.getElementById('available-balance').textContent = formatCurrency(balance);
+      } catch (err) {
+        showError(err.message);
+        btn.disabled = false;
+        btn.innerHTML = 'Send Money ↗';
+      }
+    };
+
+    window.resetForm = function() {
+      document.getElementById('to-account').value = '';
+      document.getElementById('amount').value     = '';
+      document.getElementById('form-content').style.display  = 'block';
+      document.getElementById('success-state').style.display = 'none';
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('send-btn').innerHTML = 'Send Money ↗';
+      document.getElementById('sum-to').textContent     = '—';
+      document.getElementById('sum-amount').textContent = '₹ 0.00';
+    };
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await authAPI.logout(); } catch {}
+      clearSession();
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>
