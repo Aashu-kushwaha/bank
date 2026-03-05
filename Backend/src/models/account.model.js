@@ -55,6 +55,10 @@ accountSchema.methods.getBalance = async function () {
     }
   ])
 
+  console.log("getBalance called for account:", this._id)  // 👈 ADD
+  console.log("ledger entries found:", balanceData)         // 👈 ADD
+
+
   if (balanceData.length === 0) {
     return 0;
   }

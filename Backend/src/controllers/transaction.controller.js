@@ -31,7 +31,7 @@ async function createTransaction(req, res) {
   try {
 
     const fromUserAccount = await accountModel.findById(fromAccount)
-    const toUserAccount = await accountModel.findById(toAccount).populate("user") // ✅ populate user
+    const toUserAccount = await accountModel.findById(toAccount).populate("user")
 
     if (!fromUserAccount || !toUserAccount) {
       return res.status(400).json({
@@ -79,21 +79,23 @@ async function createTransaction(req, res) {
 
       await transaction.save({ session })
 
-      // 6 DEBIT entry
-      await ledgerModel.create([{
+      // 6 DEBIT entry — using new + save for reliable session support
+      const debitEntry = new ledgerModel({
         account: fromAccount,
         amount,
         transaction: transaction._id,
         type: "DEBIT"
-      }], { session })
+      })
+      await debitEntry.save({ session })
 
-      // 7 CREDIT entry
-      await ledgerModel.create([{
+      // 7 CREDIT entry — using new + save for reliable session support
+      const creditEntry = new ledgerModel({
         account: toAccount,
         amount,
         transaction: transaction._id,
         type: "CREDIT"
-      }], { session })
+      })
+      await creditEntry.save({ session })
 
       // 8 Mark COMPLETED
       transaction.status = "COMPLETED"
@@ -113,7 +115,7 @@ async function createTransaction(req, res) {
         toAccount
       )
 
-      //  Email to RECEIVER
+      // Email to RECEIVER
       await emailService.moneyReceivedEmail(
         toUserAccount.user.email,
         toUserAccount.user.name,
@@ -146,7 +148,7 @@ async function createTransaction(req, res) {
 async function getTransactionHistory(req, res) {
   try {
     const account = await accountModel.findOne({ user: req.user._id })
-    
+
     if (!account) {
       return res.status(404).json({ message: "Account not found." })
     }
@@ -180,7 +182,7 @@ async function createInitialFundsTransaction(req, res) {
 
   try {
 
-    const toUserAccount = await accountModel.findById(toAccount).populate("user") //  populate user
+    const toUserAccount = await accountModel.findById(toAccount).populate("user")
 
     if (!toUserAccount) {
       return res.status(400).json({
@@ -220,19 +222,23 @@ async function createInitialFundsTransaction(req, res) {
 
       await transaction.save({ session })
 
-      await ledgerModel.create([{
+      // DEBIT entry — using new + save for reliable session support
+      const debitEntry = new ledgerModel({
         account: fromUserAccount._id,
         amount,
         transaction: transaction._id,
         type: "DEBIT"
-      }], { session })
+      })
+      await debitEntry.save({ session })
 
-      await ledgerModel.create([{
+      // CREDIT entry — using new + save for reliable session support
+      const creditEntry = new ledgerModel({
         account: toAccount,
         amount,
         transaction: transaction._id,
         type: "CREDIT"
-      }], { session })
+      })
+      await creditEntry.save({ session })
 
       transaction.status = "COMPLETED"
       await transaction.save({ session })
@@ -240,7 +246,7 @@ async function createInitialFundsTransaction(req, res) {
       await session.commitTransaction()
       session.endSession()
 
-      // Send email AFTER commit, user is populated
+      // Send email AFTER commit
       await emailService.moneyReceivedEmail(
         toUserAccount.user.email,
         toUserAccount.user.name,
