@@ -10,6 +10,8 @@ async function request(method, path, body = null, auth = true) {
     const token = getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
+  
+  headers['Cache-Control'] = 'no-cache';
 
   const options = { method, headers, credentials: 'include' };
   if (body) options.body = JSON.stringify(body);
