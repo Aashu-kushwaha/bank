@@ -30,7 +30,8 @@ async function createTransaction(req, res) {
 
   try {
 
-    const fromUserAccount = await accountModel.findById(fromAccount)
+    // Populate both accounts with user details
+    const fromUserAccount = await accountModel.findById(fromAccount).populate("user")
     const toUserAccount = await accountModel.findById(toAccount).populate("user")
 
     if (!fromUserAccount || !toUserAccount) {
@@ -79,7 +80,7 @@ async function createTransaction(req, res) {
 
       await transaction.save({ session })
 
-      // 6 DEBIT entry — using new + save for reliable session support
+      // 6 DEBIT entry
       const debitEntry = new ledgerModel({
         account: fromAccount,
         amount,
@@ -88,7 +89,7 @@ async function createTransaction(req, res) {
       })
       await debitEntry.save({ session })
 
-      // 7 CREDIT entry — using new + save for reliable session support
+      // 7 CREDIT entry
       const creditEntry = new ledgerModel({
         account: toAccount,
         amount,
@@ -105,12 +106,12 @@ async function createTransaction(req, res) {
       await session.commitTransaction()
       session.endSession()
 
-      // 10 Send emails AFTER commit (outside transaction)
+      // 10 Send emails AFTER commit
 
       // Email to SENDER
       await emailService.sendTransactionEmail(
-        req.user.email,
-        req.user.name,
+        fromUserAccount.user.email,
+        fromUserAccount.user.name,
         amount,
         toAccount
       )
@@ -222,7 +223,7 @@ async function createInitialFundsTransaction(req, res) {
 
       await transaction.save({ session })
 
-      // DEBIT entry — using new + save for reliable session support
+      // DEBIT entry
       const debitEntry = new ledgerModel({
         account: fromUserAccount._id,
         amount,
@@ -231,7 +232,7 @@ async function createInitialFundsTransaction(req, res) {
       })
       await debitEntry.save({ session })
 
-      // CREDIT entry — using new + save for reliable session support
+      // CREDIT entry
       const creditEntry = new ledgerModel({
         account: toAccount,
         amount,
