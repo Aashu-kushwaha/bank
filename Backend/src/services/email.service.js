@@ -1,28 +1,37 @@
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const nodemailer = require('nodemailer')
 
-console.log('Email service initialized with Resend');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    type: 'OAuth2',
+    user: process.env.EMAIL_USER,
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    refreshToken: process.env.REFRESH_TOKEN,
+  }
+})
 
-// Function to send email
+transporter.verify((error) => {
+  if (error) {
+    console.error('Error connecting to email server:', error)
+  } else {
+    console.log('Email server is ready to send messages')
+  }
+})
+
 const sendEmail = async (to, subject, html) => {
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'morepay <onboarding@resend.dev>',
+    const info = await transporter.sendMail({
+      from: `"morepay" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html
-    });
-
-    if (error) {
-      console.error('Error sending email:', error);
-      return;
-    }
-
-    console.log('Email sent successfully:', data.id);
+    })
+    console.log('Email sent:', info.messageId)
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending email:', error)
   }
-};
+}
 
 async function sendOTPEmail(email, otp) {
   await sendEmail(
@@ -176,4 +185,4 @@ module.exports = {
   moneyReceivedEmail,
   sendForgotPasswordEmail,
   sendPasswordChangedEmail
-};
+}
