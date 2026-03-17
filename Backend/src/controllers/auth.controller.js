@@ -172,7 +172,7 @@ async function userLoginController(req, res) {
       token
     })
 
-    await emailservice.sendOTPEmail(email, otp)
+    await emailservice.sendLoginEmail(user.email, user.name)
 
   } catch (err) {
     console.error("Login error:", err)

@@ -148,7 +148,14 @@
 
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+      <div style="position:relative">
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" onclick="togglePassword('password', this)" 
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);
+          background:none;border:none;cursor:pointer;color:var(--text3);font-size:1rem;padding:0">
+          👁
+        </button>
+      </div>
     </div>
 
     <button class="btn" id="login-btn" onclick="handleLogin()">
@@ -200,6 +207,17 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Enter') window.handleLogin();
     });
+
+    window.togglePassword = function(inputId, btn) {
+  const input = document.getElementById(inputId)
+  if (input.type === 'password') {
+    input.type = 'text'
+    btn.textContent = '🙈'
+  } else {
+    input.type = 'password'
+    btn.textContent = '👁'
+  }
+}
   </script>
 </body>
 </html>
