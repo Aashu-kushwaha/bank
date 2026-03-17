@@ -7,6 +7,8 @@ frontend/node_modules/
 .env
 .env.local
 backend/.env
+Backend/.env
+Backend/src/.env  # ← add this
 
 # ── Logs ──────────────────────────────
 *.log
