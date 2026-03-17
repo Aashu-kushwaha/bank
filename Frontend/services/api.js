@@ -36,7 +36,7 @@ export const authAPI = {
   profile: () =>
     request('GET', '/auth/profile'),
 
-  // ✅ These must be INSIDE authAPI object
+  //  These must be INSIDE authAPI object
   forgotPassword: (email) =>
     request('POST', '/auth/forgot-password', { email }, false),
 
