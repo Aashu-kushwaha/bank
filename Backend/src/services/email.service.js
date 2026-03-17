@@ -1,35 +1,24 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-})
-
-// Verify the connection configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('Error connecting to email server:', error);
-  } else {
-    console.log('Email server is ready to send messages');
-  }
-});
+console.log('Email service initialized with Resend');
 
 // Function to send email
-const sendEmail = async (to, subject, text, html) => {
+const sendEmail = async (to, subject, html) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"morepay" <${process.env.EMAIL_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: 'morepay <onboarding@resend.dev>',
       to,
       subject,
-      text,
-      html,
+      html
     });
-    console.log('Message sent: %s', info.messageId);
+
+    if (error) {
+      console.error('Error sending email:', error);
+      return;
+    }
+
+    console.log('Email sent successfully:', data.id);
   } catch (error) {
     console.error('Error sending email:', error);
   }
@@ -39,7 +28,6 @@ async function sendOTPEmail(email, otp) {
   await sendEmail(
     email,
     "Verify your morepay account",
-    '',
     `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Verify your email</h2>
@@ -57,7 +45,6 @@ async function sendRegistrationEmail(userEmail, name, accountId) {
   await sendEmail(
     userEmail,
     'Welcome to morepay! Your Account Details',
-    '',
     `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
@@ -81,7 +68,6 @@ async function sendLoginEmail(userEmail, name) {
   await sendEmail(
     userEmail,
     'New Login Alert',
-    '',
     `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
@@ -98,7 +84,6 @@ async function sendTransactionEmail(userEmail, name, amount, toAccount) {
   await sendEmail(
     userEmail,
     'Transaction Successful!',
-    '',
     `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
@@ -119,7 +104,6 @@ async function sendTransactionFailureEmail(userEmail, name, amount, toAccount) {
   await sendEmail(
     userEmail,
     'Transaction Failed',
-    '',
     `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
@@ -135,7 +119,6 @@ async function moneyReceivedEmail(userEmail, name, amount, fromAccount) {
   await sendEmail(
     userEmail,
     'Money Received!',
-    '',
     `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
@@ -151,8 +134,12 @@ async function moneyReceivedEmail(userEmail, name, amount, fromAccount) {
     `
   )
 }
+
 async function sendForgotPasswordEmail(email, name, otp) {
-  await sendEmail(email, 'Reset your morepay password', '', `
+  await sendEmail(
+    email,
+    'Reset your morepay password',
+    `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
       <p>You requested to reset your password.</p>
@@ -161,20 +148,24 @@ async function sendForgotPasswordEmail(email, name, otp) {
       <p>If you didn't request this, ignore this email.</p>
       <p>Best regards,<br><strong>The morepay Team</strong></p>
     </div>
-  `)
+    `
+  )
 }
 
 async function sendPasswordChangedEmail(email, name) {
-  await sendEmail(email, 'Password Changed Successfully', '', `
+  await sendEmail(
+    email,
+    'Password Changed Successfully',
+    `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
       <h2>Hello ${name},</h2>
       <p>Your morepay password has been changed successfully.</p>
       <p>If you did not make this change, please contact support immediately.</p>
       <p>Best regards,<br><strong>The morepay Team</strong></p>
     </div>
-  `)
+    `
+  )
 }
-
 
 module.exports = {
   sendOTPEmail,
