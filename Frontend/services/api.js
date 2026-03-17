@@ -1,5 +1,6 @@
-// const BASE_URL = 'https://bank-pkdh.onrender.com/api'
-const BASE_URL = 'http://localhost:3000/api'
+const BASE_URL = 'https://bank-pkdh.onrender.com/api'
+// const BASE_URL = 'http://localhost:3000/api'
+
 function getToken() {
   return localStorage.getItem('token');
 }
@@ -10,20 +11,14 @@ async function request(method, path, body = null, auth = true) {
     const token = getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  
   headers['Cache-Control'] = 'no-cache';
-
   const options = { method, headers, credentials: 'include' };
   if (body) options.body = JSON.stringify(body);
-
   const res = await fetch(`${BASE_URL}${path}`, options);
   const data = await res.json();
-
   if (!res.ok) throw new Error(data.message || 'Something went wrong');
   return data;
 }
-
-// ── Auth ─────────────────────────────────────────────────────────────────────
 
 export const authAPI = {
   sendOTP: (email) =>
@@ -40,9 +35,14 @@ export const authAPI = {
 
   profile: () =>
     request('GET', '/auth/profile'),
-};
 
-// ── Accounts ─────────────────────────────────────────────────────────────────
+  // ✅ These must be INSIDE authAPI object
+  forgotPassword: (email) =>
+    request('POST', '/auth/forgot-password', { email }, false),
+
+  resetPassword: (email, otp, newPassword) =>
+    request('POST', '/auth/reset-password', { email, otp, newPassword }, false),
+};
 
 export const accountAPI = {
   getAll: () =>
@@ -51,8 +51,6 @@ export const accountAPI = {
   getBalance: (accountId) =>
     request('GET', `/accounts/${accountId}/balance`),
 };
-
-// ── Transactions ─────────────────────────────────────────────────────────────
 
 export const transactionAPI = {
   send: (fromAccount, toAccount, amount) =>

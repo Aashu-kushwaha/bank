@@ -1,13 +1,15 @@
 const express = require("express")
 const authController = require("../controllers/auth.controller.js")
 const { authMiddleware } = require("../middlewares/auth.middleware.js")
-
+const forgotController = require("../controllers/forgot.controller.js")
 const router = express.Router()
 
 router.post("/send-otp",  authController.sendOTPController)   
 router.post("/register",  authController.userRegisterController)
 router.post("/login",     authController.userLoginController)
 router.post("/logout",    authController.userLogoutController)
-router.get("/profile",    authMiddleware, authController.userProfileController) // 
-
+router.get("/profile",    authMiddleware, authController.userProfileController) 
+router.post("/forgot-password", forgotController.forgotPasswordController)
+router.post("/reset-password",  forgotController.resetPasswordController)
+console.log(forgotController)
 module.exports = router

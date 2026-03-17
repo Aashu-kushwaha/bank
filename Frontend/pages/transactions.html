@@ -215,7 +215,7 @@
 
         // Fetch transactions via backend history endpoint
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:3000/api/transaction/history`, {
+        const res = await fetch(`https://bank-pkdh.onrender.com/api/transaction/history`, {
           headers: { 'Authorization': `Bearer ${token}` },
           credentials: 'include'
         });

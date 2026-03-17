@@ -10,6 +10,7 @@ const accountModel = require("../models/account.model.js")
 const otpModel = require("../models/otp.model.js")
 const jwt = require("jsonwebtoken")
 const emailservice = require("../services/email.service.js")
+const { forgotPasswordController, resetPasswordController } = require("./forgot.controller.js")
 const tokenBlackListModel = require("../models/blackList.model.js")
 const crypto = require("crypto")
 
@@ -106,8 +107,8 @@ async function userRegisterController(req, res) {
     // Create user
     const user = await userModel.create({ email, password, name })
 
-    // Auto-create account
-    await accountModel.findOneAndUpdate(
+    // ✅ Auto-create account — store result to get account ID
+    const account = await accountModel.findOneAndUpdate(
       { user: user._id },
       { user: user._id },
       { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -126,7 +127,8 @@ async function userRegisterController(req, res) {
       token
     })
 
-    await emailservice.sendRegistrationEmail(user.email, user.name)
+    // ✅ Send account ID in registration email
+    await emailservice.sendRegistrationEmail(user.email, user.name, account._id)
 
   } catch (err) {
     console.error("Register error:", err)
@@ -152,7 +154,8 @@ async function userLoginController(req, res) {
       return res.status(401).json({ message: "Email or password is invalid." })
     }
 
-    // Auto-create account if not exists
+    // ✅ findOneAndUpdate with upsert prevents duplicate accounts
+    // If account exists — returns it. If not — creates one.
     await accountModel.findOneAndUpdate(
       { user: user._id },
       { user: user._id },
