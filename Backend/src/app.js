@@ -13,7 +13,7 @@ const app = express();
 const allowedOrigins = [
   'http://127.0.0.1:5500',
   'http://localhost:5500',
-  'https://courageous-macaron-a784f0.netlify.app' // ← update after Netlify deploy
+  'https://morepay.netlify.app'
 ]
 
 app.use(cors({
