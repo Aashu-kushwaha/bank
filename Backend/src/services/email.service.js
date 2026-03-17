@@ -42,7 +42,7 @@ async function sendOTPEmail(email, otp) {
   await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: "Verify your Ledger Bank account",
+    subject: "Verify your morepay account",
     html: `
       <h2>Verify your email</h2>
       <p>Your OTP for registration is:</p>

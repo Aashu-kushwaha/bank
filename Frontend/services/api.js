@@ -1,4 +1,5 @@
-const BASE_URL = 'https://bank-pkdh.onrender.com/api'
+// const BASE_URL = 'https://bank-pkdh.onrender.com/api'
+const BASE_URL = 'http://localhost:3000/api'
 function getToken() {
   return localStorage.getItem('token');
 }
