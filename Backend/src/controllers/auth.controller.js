@@ -107,7 +107,7 @@ async function userRegisterController(req, res) {
     // Create user
     const user = await userModel.create({ email, password, name })
 
-    // ✅ Auto-create account — store result to get account ID
+    //  Auto-create account — store result to get account ID
     const account = await accountModel.findOneAndUpdate(
       { user: user._id },
       { user: user._id },
@@ -127,7 +127,7 @@ async function userRegisterController(req, res) {
       token
     })
 
-    // ✅ Send account ID in registration email
+    //  Send account ID in registration email
     await emailservice.sendRegistrationEmail(user.email, user.name, account._id)
 
   } catch (err) {

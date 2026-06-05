@@ -81,7 +81,7 @@ async function sendRegistrationEmail(userEmail, name, accountId) {
         <p style="color:#c9a84c;font-size:18px;letter-spacing:4px;margin:0;font-family:monospace">${accountId}</p>
       </div>
       <p style="color:#666;font-size:13px;margin-top:16px">
-        ⚠️ Keep this safe — share it with others to receive money.
+         Keep this safe — share it with others to receive money.
       </p>
       <br>
       <p>Best regards,<br><strong>The morepay Team</strong></p>
